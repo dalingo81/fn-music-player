@@ -764,8 +764,8 @@ console.log('Scanning music library...');
 scanMusic();
 console.log('Found ' + musicCache.songs.length + ' songs.');
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server listening on http://0.0.0.0:${PORT}`);
+server.listen(PORT, '::', () => {
+  console.log('Server listening on http://[::]:' + PORT + ' (IPv4 + IPv6)');
 });
 
 // 优雅关闭
