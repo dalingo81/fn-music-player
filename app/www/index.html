@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>小牛音乐播放器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0f0f14;--bg2:#16161f;--bg3:#1e1e2c;--bg4:#2a2a3a;--accent:#7c5cfc;--pink:#ff6b9d;--fg:#e8e8f0;--fg2:#9090a8;--fg3:#585870;--border:#282838}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;background:var(--bg);color:var(--fg);overflow:hidden;height:100vh}
+.app{display:flex;height:100vh;flex-direction:row}
+.sb{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0}
+.sh{padding:0 16px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sh h1{font-size:16px;font-weight:700;background:linear-gradient(135deg,#7c5cfc,#b794ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ss{margin:10px 10px 6px;position:relative}
+.ss input{width:100%;padding:9px 10px 9px 32px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--fg);font-size:13px;outline:none}
+.ss input:focus{border-color:var(--accent)}
+.ss .si{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--fg3);pointer-events:none}
+.nav{flex:1;overflow-y:auto;padding:6px}
+.n{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--fg2);font-size:13px;font-weight:500;transition:0.2s}
+.n:hover{background:var(--bg3)}.n.a{background:var(--accent);color:#fff}
+.n .b{margin-left:auto;background:var(--bg3);padding:1px 7px;border-radius:9px;font-size:10px;color:var(--fg2)}
+.n.a .b{background:rgba(255,255,255,0.15);color:#fff}
+.sf{padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--fg3);text-align:center;flex-shrink:0}
+.sf .lo{cursor:pointer;color:var(--fg2);margin-bottom:6px;font-size:12px}
+
+.m{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.h{padding:14px 20px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.h h2{font-size:18px;font-weight:700}.h .st{font-size:12px;color:var(--fg2)}
+.bs{background:var(--bg3);border:1px solid var(--border);color:var(--fg2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0}
+.bs:active{background:var(--bg4)}
+.sl{flex:1;overflow-y:auto;padding:4px 16px}
+.si{display:flex;align-items:center;padding:8px 10px;border-radius:8px;cursor:pointer;transition:0.15s;gap:10px;user-select:none}
+.si:active{background:var(--bg3)}.si.p{background:rgba(124,92,252,0.12);border-left:3px solid var(--accent)}
+.si .i{width:22px;text-align:center;color:var(--fg3);font-size:11px;flex-shrink:0}
+.si .th{width:36px;height:36px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden}
+.si .th img{width:100%;height:100%;object-fit:cover}
+.si .f{flex:1;min-width:0}
+.si .tt{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si .ar{font-size:11px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si .ex{font-size:10px;color:var(--fg3);background:var(--bg3);padding:1px 5px;border-radius:3px;flex-shrink:0}
+.si .fv{background:none;border:none;font-size:18px;cursor:pointer;padding:4px;flex-shrink:0;transition:0.15s;line-height:1;touch-action:manipulation}
+.si .fv:active{transform:scale(1.2)}
+.em{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--fg3);gap:12px;padding:40px;flex-shrink:0}
+.em .ei{font-size:48px}
+
+/* 底部迷你播放栏（桌面+手机通用） */
+.pb{background:var(--bg2);border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;height:56px;cursor:pointer}
+.pb:active{background:var(--bg3)}
+.pc{display:flex;align-items:center;gap:8px;min-width:0;flex:1;max-width:35%}
+.pcc{width:38px;height:38px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.pcc img{width:100%;height:100%;object-fit:cover}
+.pci{min-width:0;flex:1}
+.pct{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pca{font-size:11px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb-c{display:flex;align-items:center;justify-content:center;gap:8px;flex:1}
+.pbn{background:none;border:none;color:var(--fg2);font-size:20px;cursor:pointer;padding:6px;transition:0.15s;line-height:1}
+.pbn:active{color:var(--fg);transform:scale(0.9)}
+.pbn.bp{font-size:28px;color:var(--accent)}
+
+/* 全屏播放界面（手机专用） */
+.mp{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;background:linear-gradient(180deg,#1a1a2e 0%,#0f0f14 100%);flex-direction:column;align-items:center;justify-content:center;padding:60px 30px calc(30px+env(safe-area-inset-bottom))}
+.mp.a{display:flex}
+.mp-h{position:absolute;top:0;left:0;right:0;padding:16px;display:flex;align-items:center;justify-content:space-between;z-index:10}
+.mp-h .mbk{background:none;border:none;color:var(--fg2);font-size:24px;cursor:pointer;padding:8px;touch-action:manipulation}
+.mp-h .mlo{background:none;border:none;color:var(--fg3);font-size:12px;cursor:pointer;padding:6px 10px}
+.mp-c{width:min(300px,65vw);height:min(300px,65vw);border-radius:20px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:72px;overflow:hidden;box-shadow:0 8px 60px rgba(0,0,0,0.6);margin-bottom:20px;flex-shrink:0}
+.mp-c img{width:100%;height:100%;object-fit:cover}
+.mp-t{font-size:22px;font-weight:700;text-align:center;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.mp-a{font-size:15px;color:var(--fg2);text-align:center;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:24px}
+.mp-p{width:100%;max-width:360px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.mp-pt{font-size:12px;color:var(--fg3);min-width:36px;text-align:center}
+.mpr{flex:1;height:5px;background:var(--bg3);border-radius:3px;cursor:pointer;position:relative;touch-action:none}
+.mpr-f{height:100%;background:linear-gradient(90deg,var(--accent),#b794ff);border-radius:3px;width:0;pointer-events:none}
+.mpr-d{position:absolute;top:-5px;width:15px;height:15px;border-radius:50%;background:var(--accent);transform:translateX(-50%);pointer-events:none;opacity:0}
+.mpr:active .mpr-d,.mpr:hover .mpr-d{opacity:1}
+.mp-b{display:flex;align-items:center;gap:24px;margin-top:12px}
+.mpn{background:none;border:none;color:var(--fg2);font-size:28px;cursor:pointer;padding:10px;transition:0.15s;line-height:1;touch-action:manipulation}
+.mpn:active{color:var(--fg);transform:scale(0.9)}
+.mpn.mp-play{font-size:56px;color:var(--accent);background:var(--bg3);width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.mpn.mp-play:active{background:var(--bg4)}
+.mpn.a{color:var(--accent)}
+.mp-v{position:absolute;bottom:calc(10px+env(safe-area-inset-bottom));left:0;right:0;padding:0 30px;display:flex;align-items:center;gap:10px}
+.mp-v .vbn{background:none;border:none;color:var(--fg3);font-size:16px;cursor:pointer;padding:4px}
+.mp-v .vr{flex:1;height:3px;background:var(--bg3);border-radius:2px;cursor:pointer;touch-action:none}
+.mp-v .vr-f{height:100%;background:var(--fg3);border-radius:2px}
+
+/* 手机底部导航 */
+@media(min-width:769px){.mn{display:none!important}}
+.mn{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:4px 0;justify-content:space-around;flex-shrink:0;z-index:10}
+.mb{display:flex;flex-direction:column;align-items:center;gap:1px;background:none;border:none;color:var(--fg3);font-size:20px;cursor:pointer;padding:4px 12px;position:relative}
+.mb span{font-size:9px}.mb.a{color:var(--accent)}
+.mb .d{position:absolute;top:2px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--pink);display:none}
+
+/* 桌面端隐藏手机 UI */
+@media(max-width:768px){#pbControls .pbn:nth-child(1),#pbControls .pbn:nth-child(2){display:none}.mn{padding-bottom:4px}
+  .sb{display:none}
+  .h .bs{display:none}
+  .h h2{font-size:16px}
+  .sl{padding:4px 8px}
+  .si{padding:6px 8px}
+  .si .i{display:none}
+  .si .al{display:none}
+}
+@media(min-width:769px){
+  .mp{display:none!important}
+  .mn{display:none!important}
+  .pb{height:auto;cursor:default}
+}
+
+.vw{display:none;flex-direction:column;flex:1;overflow:hidden}.vw.a{display:flex}
+.fav-empty{text-align:center;padding:60px 20px;color:var(--fg3);font-size:14px;line-height:2}
+.fav-empty .big{font-size:48px;display:block;margin-bottom:12px}
+.mt{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border);color:var(--fg);padding:8px 20px;border-radius:8px;font-size:12px;opacity:0;transition:opacity 0.3s;z-index:101;pointer-events:none}
+.mt.s{opacity:1}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="app">
+<aside class="sb">
+<div class="sh"><span style="font-size:22px">🎵</span><h1>小牛音乐播放器</h1></div>
+<div class="ss"><span class="si">🔍</span><input type="text" id="q" placeholder="搜索..." oninput="onQ()"></div>
+<nav class="nav">
+<div class="n a" onclick="sw('s',this)"><span>🎶</span>全部歌曲<span class="b" id="sc">0</span></div>
+<div class="n" onclick="sw('f',this)"><span>❤️</span>收藏歌单<span class="b" id="fc">0</span></div>
+</nav>
+<div class="sf"><div class="lo" onclick="logout()">🚪 退出登录</div>小牛音乐播放器 v1.0</div>
+</aside>
+<main class="m">
+<!-- 手机底部导航 -->
+<div class="mn" id="mn">
+<button class="mb a" onclick="sw('s',null)">🎶<span>全部歌曲</span></button>
+<button class="mb" onclick="sw('f',null)">❤️<span>收藏歌单</span><span class="d" id="fD"></span></button>
+</div>
+<div class="h"><div><h2 id="vt">全部歌曲</h2><div class="st" id="vs">浏览所有音乐</div></div><button class="bs" onclick="rescan()">🔄 扫描</button></div>
+<div class="vw a" id="v-s"><div class="sl" id="sL"></div></div>
+<div class="vw" id="v-f"><div class="sl" id="fL"><div class="fav-empty"><span class="big">❤️</span>还没有收藏歌曲<br>在全部歌曲中点击 ♡ 收藏喜欢的歌</div></div></div>
+<div class="em" id="em" style="display:none"><div class="ei" id="emIcon">📂</div><h3 style="color:var(--fg2);font-size:18px;margin-top:4px" id="emTitle">暂未发现音乐文件</h3><p style="font-size:13px;color:var(--fg3);text-align:center;max-width:300px;line-height:1.8" id="emMsg">请前往「应用设置」→「授权文件夹」<br>添加您的音乐文件夹<br><br>授权后点击「🔄 扫描」即可</p></div>
+<!-- 底部迷你播放栏 -->
+<div class="pb" id="pb">
+<div class="pc" onclick="openPlayer()"><div class="pcc" id="cC">🎵</div><div class="pci"><div class="pct" id="cT">未播放</div><div class="pca" id="cA">选择歌曲</div></div></div>
+<div class="pb-c" id="pbControls">
+<button class="pbn" onclick="event.stopPropagation();cycleMode()" id="pbMode">🔀</button>
+<button class="pbn" onclick="event.stopPropagation();prev()">⏮</button>
+<button class="pbn bp" onclick="event.stopPropagation();tog()" id="plB">▶</button>
+<button class="pbn" onclick="event.stopPropagation();next()">⏭</button>
+</div>
+</div>
+</main>
+
+</div>
+
+<!-- 全屏播放界面（手机） -->
+<div class="mp" id="mp">
+<div class="mp-h">
+<button class="mbk" onclick="closePlayer()">↓</button><button class="mlo" onclick="logout()" style="display:block">🚪 退出</button>
+</div>
+<div class="mp-c" id="mpC">🎵</div>
+<div class="mp-t" id="mpT">未播放</div>
+<div class="mp-a" id="mpA">选择歌曲欣赏</div>
+<div class="mp-p">
+<span class="mp-pt" id="mpCu">0:00</span>
+<div class="mpr" id="mpPb" onclick="seek(event)"><div class="mpr-f" id="mpPf"></div><div class="mpr-d" id="mpPd"></div></div>
+<span class="mp-pt" id="mpTo">0:00</span>
+</div>
+<div class="mp-b">
+<button class="mpn" onclick="cyc()" id="mB">🔀</button>
+<button class="mpn" onclick="prev()">⏮</button>
+<button class="mpn mp-play" onclick="tog()" id="mpPl">▶</button>
+<button class="mpn" onclick="next()">⏭</button>
+<button class="mpn" onclick="toggleFavMP()" id="mpFav">🤍</button>
+</div>
+<div class="mp-v">
+<button class="vbn" onclick="togM()" id="mpVB">🔊</button>
+<div class="vr" onclick="sVol(event)"><div class="vr-f" id="mpVF"></div></div>
+</div>
+</div>
+
+<div style="position:absolute;bottom:calc(50px+env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:30px;padding:12px 0"><button class="mbk" onclick="closePlayer();sw('s',null)" style="color:var(--fg3);font-size:14px">🎶 全部歌曲</button><button class="mbk" onclick="closePlayer();sw('f',null)" style="color:var(--fg3);font-size:14px">❤️ 收藏歌单</button></div>
+<div class="mt" id="mt"></div>
+<audio id="ap" preload="auto" ontimeupdate="onT()" onended="onE()" onloadedmetadata="onM()"></audio>
+
+<script>
+var S=[],Q=[],qi=-1,pl=false,mu=false,pv=0.7,md=0,mo=["🔀","🔁","🔂","➡️"],au=document.getElementById("ap"),cv="s",F=[];
+
+function init(){au.volume=pv;au.addEventListener("error",function(){t("音频加载失败，请检查文件权限")});load()}
+document.addEventListener("DOMContentLoaded",init);
+if(document.readyState==="complete"||document.readyState==="interactive")init();
+
+async function load(){try{var r=await fetch("/api/status");if(r.status===401){window.location.href="/login.html";return}var st=await r.json();updateEmStatus(st);var r2=await fetch("/api/songs");S=await r2.json();await loadFavs();up();render()}catch(e){t("加载失败")}}
+async function loadFavs(){try{var r=await fetch("/api/favorites");F=await r.json()}catch(e){F=[]}}
+function up(){document.getElementById("sc").textContent=S.length;document.getElementById("fc").textContent=F.length;document.getElementById("fD").style.display=F.length?"block":"none"}
+
+function updateEmStatus(st){
+  var icon=document.getElementById("emIcon");
+  var title=document.getElementById("emTitle");
+  var msg=document.getElementById("emMsg");
+  if(!st.pathStatus||!st.pathStatus.length){
+    icon.textContent="⚙️";title.textContent="未授权音乐文件夹";msg.innerHTML="请前往「应用设置」→「授权文件夹」<br>添加您的音乐文件夹（设置为只读即可）<br><br>授权后点击「🔄 扫描」即可";
+  }else{
+    var any=st.pathStatus.some(function(p){return p.exists});
+    var paths=st.pathStatus.map(function(p){return (p.exists?"✅":"❌")+" "+p.path}).join("<br>");
+    if(!any){icon.textContent="📂";title.textContent="文件夹不存在";msg.innerHTML="已授权的文件夹路径无效：<br>"+paths+"<br><br>请前往「应用设置」修改授权文件夹";}
+    else{icon.textContent="🎵";title.textContent="文件夹为空";msg.innerHTML="已授权文件夹：<br>"+paths+"<br><br>请添加音乐文件后点击「🔄 扫描」";}
+  }
+}
+function esc(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML}
+function ea(t){return esc(t).replace(/"/g,"&quot;")}
+
+function sw(v,el){cv=v;document.getElementById("vt").textContent=v==="f"?"❤️ 收藏歌单":"全部歌曲";document.getElementById("vs").textContent=v==="f"?F.length+" 首收藏":S.length+" 首歌曲";["v-s","v-f"].forEach(function(id){document.getElementById(id).classList.remove("a")});document.getElementById("v-"+v).classList.add("a");document.querySelectorAll(".n,.mb").forEach(function(n){n.classList.remove("a")});if(el)el.classList.add("a");else{var ix={s:0,f:1}[v];var al=document.querySelectorAll(".n,.mb");if(al[ix])al[ix].classList.add("a")}render()}
+
+function render(){var q=document.getElementById("q").value.toLowerCase();if(cv==="s"){var f=q?S.filter(function(s){return s.title.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q)}):S;rS(f)}else rF();var e=document.getElementById("em");if(!S.length){e.style.display="flex";document.querySelectorAll(".vw").forEach(function(el){el.style.display="none"})}else{e.style.display="none";document.querySelectorAll(".vw").forEach(function(el){el.style.display=""})}}
+function onQ(){render()}
+
+function rS(l){var c=document.getElementById("sL");if(!l.length){c.innerHTML='<div style="text-align:center;padding:30px;color:var(--fg3);font-size:13px">没有匹配的歌曲</div>';return}c.innerHTML=l.map(function(s,i){var idx=S.indexOf(s);var liked=F.indexOf(s.id)>=0;return '<div class="si'+(Q.length>0&&Q[qi]===s?" p":"")+'" onclick="pI('+idx+')"><span class="i">'+(i+1)+'</span><div class="th">'+(s.hasCover?'<img src="/cover/'+s.id+'">':"🎵")+'</div><div class="f"><div class="tt">'+esc(s.title)+'</div><div class="ar">'+esc(s.artist)+'</div></div><span class="ex">'+s.ext+'</span><button class="fv" onclick="event.stopPropagation();togFav('+idx+')">'+(liked?"❤️":"🤍")+'</button></div>'}).join("")}
+function rF(){var c=document.getElementById("fL");if(!F.length){c.innerHTML='<div class="fav-empty"><span class="big">❤️</span>还没有收藏歌曲<br>在全部歌曲中点击 ♡ 收藏喜欢的歌</div>';return}var fS=F.map(function(id){for(var i=0;i<S.length;i++){if(S[i].id===id)return S[i]}return null}).filter(function(s){return s});c.innerHTML=fS.map(function(s,i){var idx=S.indexOf(s);return '<div class="si'+(Q.length>0&&Q[qi]===s?" p":"")+'" onclick="pI('+idx+')"><span class="i">'+(i+1)+'</span><div class="th">'+(s.hasCover?'<img src="/cover/'+s.id+'">':"🎵")+'</div><div class="f"><div class="tt">'+esc(s.title)+'</div><div class="ar">'+esc(s.artist)+'</div></div><span class="ex">'+s.ext+'</span><button class="fv" onclick="event.stopPropagation();togFav('+idx+')">❤️</button></div>'}).join("")}
+
+async function togFav(idx){if(idx<0||idx>=S.length)return;var id=S[idx].id;try{var r=await fetch("/api/favorites/toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:id})});var d=await r.json();await loadFavs();up();render();updateFavBtn();t(d.liked?"❤️ 已收藏":"💔 已取消收藏")}catch(e){t("操作失败")}}
+
+function pI(idx){if(idx<0||idx>=S.length)return;Q=S.slice(idx);for(var i=0;i<idx;i++)Q.push(S[i]);qi=0;pQ(0)}
+function pQ(idx){if(idx<0||idx>=Q.length)return;qi=idx;var s=Q[idx];var im=s.hasCover?'<img src="/cover/'+s.id+'">':"🎵";document.getElementById("cT").textContent=s.title;document.getElementById("cA").textContent=s.artist;document.getElementById("cC").innerHTML=im;document.getElementById("mpT").textContent=s.title;document.getElementById("mpA").textContent=s.artist;document.getElementById("mpC").innerHTML=im;updateFavBtn();au.src="/stream/"+s.id;au.load();var pp=au.play();if(pp)pp.catch(function(){});pl=true;document.getElementById("plB").textContent="⏸";document.getElementById("mpPl").textContent="⏸";if(window.innerWidth<=768)openPlayer();render()}
+
+function updateFavBtn(){var s=Q[qi];if(!s)return;var liked=F.indexOf(s.id)>=0;document.getElementById("mpFav").textContent=liked?"❤️":"🤍"}
+function toggleFavMP(){if(qi<0||qi>=Q.length)return;var s=Q[qi];var idx=S.indexOf(s);if(idx>=0)togFav(idx)}
+
+function openPlayer(){if(window.innerWidth<=768&&qi>=0&&qi<Q.length)document.getElementById("mp").classList.add("a")}
+function closePlayer(){document.getElementById("mp").classList.remove("a")}
+
+function tog(){if(!Q.length&&S.length){pI(0);return}if(qi<0&&Q.length){pQ(0);return}if(pl){au.pause();pl=false;document.getElementById("plB").textContent="▶";document.getElementById("mpPl").textContent="▶"}else{var pp2=au.play();if(pp2)pp2.catch(function(){});pl=true;document.getElementById("plB").textContent="⏸";document.getElementById("mpPl").textContent="⏸"}}
+function prev(){if(!Q.length)return;var i=qi-1;if(i<0)i=Q.length-1;pQ(i)}
+function next(){if(!Q.length)return;if(md===2){au.currentTime=0;au.play();return}var i;if(md===0)i=Math.floor(Math.random()*Q.length);else{i=qi+1;if(i>=Q.length)i=md===1?0:-1}if(i>=0)pQ(i)}
+function onE(){next()}
+function onT(){if(!au.duration)return;var p=(au.currentTime/au.duration)*100||0;if(p>100)p=100;document.getElementById("mpPf").style.width=p+"%";document.getElementById("mpCu").textContent=ft(au.currentTime)}
+function onM(){document.getElementById("mpTo").textContent=ft(au.duration)}
+function seek(e){var bar=e.currentTarget;var rect=bar.getBoundingClientRect();au.currentTime=((e.clientX||e.touches[0].clientX)-rect.left)/rect.width*au.duration}
+function ft(s){if(!s||isNaN(s))return"0:00";var m=Math.floor(s/60),se=Math.floor(s%60);return m+":"+(se<10?"0":"")+se}
+function cyc(){md=(md+1)%4;document.getElementById("mB").textContent=mo[md];var e=document.getElementById("pbMode");if(e)e.textContent=mo[md]}
+function cycleMode(){cyc()}
+function togM(){if(mu){au.volume=pv;mu=false}else{pv=au.volume;au.volume=0;mu=true}uVol()}
+function sVol(e){var rect=e.currentTarget.getBoundingClientRect();var r=Math.max(0,Math.min(1,((e.clientX||e.touches[0].clientX)-rect.left)/rect.width));au.volume=r;pv=r;mu=false;uVol()}
+function uVol(){document.getElementById("mpVF").style.width=(au.volume*100)+"%";document.getElementById("mpVB").textContent=au.volume===0?"🔇":au.volume>0.5?"🔊":"🔉";document.getElementById("vF").style.width=(au.volume*100)+"%"}
+async function rescan(){t("扫描中...");try{var r=await fetch("/api/scan",{method:"POST"});var d=await r.json();await load();t("扫描完成，共 "+d.count+" 首")}catch(e){t("扫描失败")}}
+function logout(){fetch("/api/logout",{method:"POST"}).then(function(){window.location.href="/login.html"}).catch(function(){window.location.href="/login.html"})}
+function t(msg){var el=document.getElementById("mt");if(!el)return;el.textContent=msg;el.classList.add("s");clearTimeout(el._h);el._h=setTimeout(function(){el.classList.remove("s")},2500)}
+init();
+</script>
+</body></html>

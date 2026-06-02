@@ -1,0 +1,7 @@
+{
+  "defaults": {
+    "run-as": "package"
+  },
+  "username": "fn_music_player",
+  "groupname": "fn_music_player"
+}

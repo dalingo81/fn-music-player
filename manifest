@@ -1,0 +1,30 @@
+# ═══════════════ 基本信息 ═══════════════
+appname        = fn-music-player
+version        = 1.0.0
+display_name   = 小牛音乐播放器
+desc           = <h3>🎵 小牛音乐播放器</h3><p>一个轻量级的本地音乐播放器，让您在飞牛NAS上畅听本地音乐。</p><h4>✨ 功能特性</h4><ul><li>🎶 自动扫描授权文件夹内的所有音乐文件</li><li>📋 支持 MP3/FLAC/WAV/AAC/OGG/APE/WMA/M4A/OPUS 等主流格式</li><li>🎨 简洁美观的现代化 Web 播放界面</li><li>📱 支持手机/平板/电脑多端访问</li><li>❤️ 收藏歌单功能</li><li>🔍 按歌曲名、艺术家搜索</li></ul><p><b>⚠️ 首次使用必读：</b>请前往「应用设置」→「授权文件夹」，添加您的音乐文件夹（设置为只读权限即可），然后在播放器中点击「🔄 重新扫描」。</p><h4>🔧 使用步骤</h4><ol><li>安装后在桌面打开播放器</li><li>使用NAS本地账号登录</li><li>前往「应用设置」授权音乐文件夹</li><li>回到播放器点击「🔄 重新扫描」</li><li>点击歌曲开始欣赏</li></ol>
+source         = thirdparty
+
+# ═══════════════ 系统要求 ═══════════════
+platform       = x86
+os_min_version = 0.9.0
+
+# ═══════════════ 开发者信息 ═══════════════
+maintainer     = dalingo
+maintainer_url = https://github.com/dalingro
+distributor    = dalingo
+distributor_url = https://github.com/dalingro
+
+# ═══════════════ 安装与运行控制 ═══════════════
+install_type   =
+ctl_stop       = true
+checkport      = true
+service_port   = 6688
+
+# ═══════════════ 用户界面 ═══════════════
+desktop_uidir          = ui
+desktop_applaunchname  = fn-music-player.main
+
+# ═══════════════ 依赖 ═══════════════
+# 安装时会自动检测并安装 Node.js v22 运行时（飞牛应用中心内置）
+install_dep_apps = nodejs_v22

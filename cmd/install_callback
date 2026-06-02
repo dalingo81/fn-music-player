@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# 安装后回调脚本
+# 持久化端口配置
+
+PORT="${wizard_port}"
+
+cat > "${TRIM_PKGETC}/settings.conf" <<EOF
+MUSIC_PATH=/vol1/1000/Music
+PORT=${PORT}
+EOF
+
+exit 0

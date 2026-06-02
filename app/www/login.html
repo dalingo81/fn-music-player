@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0f0f14">
+<title>登录 - 小牛音乐播放器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;background:#0f0f14;color:#e8e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:#1a1a24;border-radius:16px;padding:40px 36px;width:360px;max-width:90vw;box-shadow:0 8px 48px rgba(0,0,0,0.5)}
+.logo{text-align:center;font-size:40px;margin-bottom:8px}
+h1{text-align:center;font-size:20px;font-weight:700;background:linear-gradient(135deg,#7c5cfc,#b794ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.sub{text-align:center;font-size:13px;color:#9090a8;margin-bottom:28px}
+.field{margin-bottom:16px}
+label{display:block;font-size:13px;color:#9090a8;margin-bottom:6px}
+input{width:100%;padding:11px 14px;background:#1e1e2c;border:1px solid #2a2a3a;border-radius:8px;color:#e8e8f0;font-size:15px;outline:none;transition:0.2s}
+input:focus{border-color:#7c5cfc}
+input::placeholder{color:#585870}
+.btn{width:100%;padding:12px;background:#7c5cfc;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;margin-top:8px}
+.btn:active{background:#9470ff;transform:scale(0.98)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.err{color:#ff6b6b;font-size:13px;text-align:center;margin-top:12px;display:none}
+.hint{text-align:center;font-size:12px;color:#585870;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="logo">🎵</div>
+<h1>小牛音乐播放器</h1>
+<div class="sub">使用 NAS 本地账号登录</div>
+<div class="field"><label>用户名</label><input type="text" id="user" placeholder="输入NAS本地用户名" autocomplete="username" autofocus></div>
+<div class="field"><label>密码</label><input type="password" id="pass" placeholder="输入密码" autocomplete="current-password"></div>
+<button class="btn" id="loginBtn" onclick="login()">登 录</button>
+<div class="err" id="errMsg"></div>
+</div>
+
+<script>
+async function login(){
+  var u=document.getElementById("user").value.trim();
+  var p=document.getElementById("pass").value;
+  var btn=document.getElementById("loginBtn");
+  var err=document.getElementById("errMsg");
+  if(!u||!p){err.textContent="请输入用户名和密码";err.style.display="block";return}
+  btn.disabled=true;btn.textContent="登录中...";err.style.display="none";
+  try{
+    var r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
+    var d=await r.json();
+    if(d.success){window.location.href="/"}
+    else{err.textContent=d.error||"登录失败";err.style.display="block";btn.disabled=false;btn.textContent="登 录"}
+  }catch(e){err.textContent="网络错误";err.style.display="block";btn.disabled=false;btn.textContent="登 录"}
+}
+
+document.getElementById("pass").addEventListener("keydown",function(e){if(e.key==="Enter")login()});
+</script>
+</body>
+</html>

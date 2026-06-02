@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# 配置变更后回调脚本
+
+PORT="${wizard_port}"
+
+cat > "${TRIM_PKGETC}/settings.conf" <<EOF
+MUSIC_PATH=/vol1/1000/Music
+PORT=${PORT}
+EOF
+
+# 重启应用使新配置生效
+bash "${0%/*}/main" stop
+sleep 1
+bash "${0%/*}/main" start
+
+exit 0

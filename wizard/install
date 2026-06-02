@@ -1,0 +1,30 @@
+[
+  {
+    "stepTitle": "安装",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "<h2>🎵 欢迎安装小牛音乐播放器！</h2><p>让您通过浏览器畅听NAS上的本地音乐。</p><br/><h4>✨ 功能亮点</h4><ul><li>自动扫描音乐文件夹</li><li>支持 MP3、FLAC、WAV、AAC、OGG、APE、WMA 等格式</li><li>自动读取歌曲封面、艺术家信息</li><li>收藏歌单功能</li><li>支持手机/平板/电脑多端访问</li></ul><br/><p>安装后即可访问 http://NAS-IP:端口 使用。</p>"
+      }
+    ]
+  },
+  {
+    "stepTitle": "应用端口设置",
+    "items": [
+      {
+        "type": "text",
+        "field": "wizard_port",
+        "label": "访问端口",
+        "initValue": "6688",
+        "rules": [
+          { "required": true, "message": "请输入端口号" },
+          { "pattern": "^[1-9][0-9]{2,4}$", "message": "请输入有效的端口号（1024-65535）" }
+        ]
+      },
+      {
+        "type": "tips",
+        "helpText": "选择一个未被占用的端口。推荐使用 6688-6699 之间。"
+      }
+    ]
+  }
+]

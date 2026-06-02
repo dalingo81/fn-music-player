@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# ══════════════════════════════════════════════════
+# 飞牛音乐播放器 - cmd/main
+# 启动/停止/状态检查
+# ══════════════════════════════════════════════════
+
+# Node.js 路径（系统预装 v18.20.4）
+# Node.js 路径（优先应用中心安装的 v22，其次系统预装）
+export PATH=/var/apps/nodejs_v22/target/bin:/usr/bin:$PATH
+
+APP_NAME="fn-music-player"
+SERVER_SCRIPT="${TRIM_APPDEST}/server/server.js"
+LOG_FILE="${TRIM_PKGVAR}/info.log"
+PID_FILE="${TRIM_PKGVAR}/app.pid"
+PORT="${TRIM_SERVICE_PORT:-3000}"
+
+# 获取用户通过「应用设置」授权的音乐文件夹
+# TRIM_DATA_ACCESSIBLE_PATHS 是冒号分隔的多个授权路径
+if [ -n "${TRIM_DATA_ACCESSIBLE_PATHS}" ]; then
+  MUSIC_PATH="${TRIM_DATA_ACCESSIBLE_PATHS%%:*}"
+  log_msg "Using authorized path: ${MUSIC_PATH}"
+else
+  MUSIC_PATH="${MUSIC_PATH:-}"
+  log_msg "WARNING: No authorized folder configured. Please set music folder in App Settings."
+fi
+DATA_DIR="${TRIM_PKGVAR}"
+
+log_msg() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "${LOG_FILE}"
+}
+
+start_process() {
+  if status; then
+    log_msg "Application is already running."
+    return 0
+  fi
+
+  # 启动 Node.js 服务
+  log_msg "Starting music player server on port ${PORT}..."
+  log_msg "Music directory: ${MUSIC_PATH}"
+  log_msg "Data directory: ${DATA_DIR}"
+
+  # 检查授权路径是否已设置
+  if [ -z "${MUSIC_PATH}" ]; then
+    echo "请先在「应用设置」中授权音乐文件夹，然后重新启动应用。" > "${TRIM_TEMP_LOGFILE}"
+    log_msg "ERROR: No music folder authorized. Please set it in App Settings."
+    return 1
+  fi
+
+  # 确保 music 目录存在
+  if [ ! -d "${MUSIC_PATH}" ]; then
+    log_msg "WARNING: Music path ${MUSIC_PATH} does not exist yet. Server will start but scan will return 0 songs."
+  fi
+
+  PORT="${PORT}" \
+  MUSIC_PATH="${MUSIC_PATH}" \
+  DATA_DIR="${TRIM_PKGVAR}" \
+  node "${SERVER_SCRIPT}" >> "${LOG_FILE}" 2>&1 &
+
+  PID=$!
+  printf "%s" "${PID}" > "${PID_FILE}"
+  disown "${PID}"
+
+  # 等待启动确认
+  sleep 2
+  if kill -0 "${PID}" 2>/dev/null; then
+    log_msg "Server started successfully (PID: ${PID})."
+    return 0
+  else
+    echo "Failed to start server!" > "${TRIM_TEMP_LOGFILE}"
+    log_msg "ERROR: Server failed to start."
+    return 1
+  fi
+}
+
+stop_process() {
+  log_msg "Stopping music player server..."
+
+  if [ -r "${PID_FILE}" ]; then
+    pid=$(head -n 1 "${PID_FILE}" | tr -d '[:space:]')
+    if [ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null; then
+      log_msg "Sending TERM signal to PID:${pid}..."
+      kill -TERM "${pid}" >> "${LOG_FILE}" 2>&1
+
+      local count=0
+      while kill -0 "${pid}" 2>/dev/null && [ ${count} -lt 10 ]; do
+        sleep 1
+        count=$((count + 1))
+      done
+
+      if kill -0 "${pid}" 2>/dev/null; then
+        log_msg "Sending KILL signal to PID:${pid}..."
+        kill -KILL "${pid}" >> "${LOG_FILE}" 2>&1
+      fi
+
+      log_msg "Server stopped."
+    else
+      log_msg "No running process found for PID:${pid}."
+    fi
+    rm -f "${PID_FILE}"
+  else
+    log_msg "No PID file found."
+  fi
+
+  return 0
+}
+
+status() {
+  if [ -f "${PID_FILE}" ]; then
+    pid=$(head -n 1 "${PID_FILE}" | tr -d '[:space:]')
+    if [ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null; then
+      return 0
+    fi
+    rm -f "${PID_FILE}"
+  fi
+  return 1
+}
+
+case $1 in
+  start)
+    start_process
+    ;;
+  stop)
+    stop_process
+    ;;
+  status)
+    if status; then
+      exit 0
+    else
+      exit 3
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac

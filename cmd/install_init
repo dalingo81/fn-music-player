@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# 安装前初始化脚本
+# 检查 Node.js 是否可用
+export PATH=/var/apps/nodejs_v22/target/bin:$PATH
+
+if ! command -v node &>/dev/null; then
+  echo "Node.js 运行环境不可用，请检查是否安装了 Node.js v22 依赖。" > "${TRIM_TEMP_LOGFILE}"
+  exit 1
+fi
+
+exit 0
