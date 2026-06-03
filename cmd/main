@@ -5,7 +5,6 @@
 # 启动/停止/状态检查
 # ══════════════════════════════════════════════════
 
-# Node.js 路径（系统预装 v18.20.4）
 # Node.js 路径（优先应用中心安装的 v22，其次系统预装）
 export PATH=/var/apps/nodejs_v22/target/bin:/usr/bin:$PATH
 
@@ -13,17 +12,18 @@ APP_NAME="fn-music-player"
 SERVER_SCRIPT="${TRIM_APPDEST}/server/server.js"
 LOG_FILE="${TRIM_PKGVAR}/info.log"
 PID_FILE="${TRIM_PKGVAR}/app.pid"
-PORT="${TRIM_SERVICE_PORT:-3000}"
-
-# 获取用户通过「应用设置」授权的音乐文件夹
-# TRIM_DATA_ACCESSIBLE_PATHS 是冒号分隔的多个授权路径
-if [ -n "${TRIM_DATA_ACCESSIBLE_PATHS}" ]; then
-  MUSIC_PATH="${TRIM_DATA_ACCESSIBLE_PATHS%%:*}"
-  log_msg "Using authorized path: ${MUSIC_PATH}"
-else
-  MUSIC_PATH="${MUSIC_PATH:-}"
-  log_msg "WARNING: No authorized folder configured. Please set music folder in App Settings."
+# 端口号获取优先级：
+# 1. settings.conf 中持久化的 PORT（来自安装向导/应用设置的 wizard_port）
+# 2. TRIM_SERVICE_PORT 环境变量（来自 manifest 的 service_port）
+# 3. 默认值 6688
+if [ -f "${TRIM_PKGETC}/settings.conf" ]; then
+  . "${TRIM_PKGETC}/settings.conf"
 fi
+PORT="${PORT:-${TRIM_SERVICE_PORT:-6688}}"
+
+# 从 TRIM_DATA_ACCESSIBLE_PATHS 获取用户通过「应用设置」授权的音乐文件夹
+# 该变量由飞牛系统自动管理，多个路径用冒号(:)分隔
+# 当用户在「应用设置」中增删授权文件夹时，系统会通过 cmd/config_init + cmd/config_callback 通知变更
 DATA_DIR="${TRIM_PKGVAR}"
 
 log_msg() {
@@ -36,26 +36,28 @@ start_process() {
     return 0
   fi
 
-  # 启动 Node.js 服务
-  log_msg "Starting music player server on port ${PORT}..."
-  log_msg "Music directory: ${MUSIC_PATH}"
-  log_msg "Data directory: ${DATA_DIR}"
-
   # 检查授权路径是否已设置
-  if [ -z "${MUSIC_PATH}" ]; then
+  if [ -z "${TRIM_DATA_ACCESSIBLE_PATHS}" ]; then
     echo "请先在「应用设置」中授权音乐文件夹，然后重新启动应用。" > "${TRIM_TEMP_LOGFILE}"
     log_msg "ERROR: No music folder authorized. Please set it in App Settings."
     return 1
   fi
 
-  # 确保 music 目录存在
-  if [ ! -d "${MUSIC_PATH}" ]; then
-    log_msg "WARNING: Music path ${MUSIC_PATH} does not exist yet. Server will start but scan will return 0 songs."
-  fi
+  log_msg "Starting music player server on port ${PORT}..."
+  log_msg "Authorized paths: ${TRIM_DATA_ACCESSIBLE_PATHS}"
+  log_msg "Data directory: ${DATA_DIR}"
 
-  PORT="${PORT}" \
-  MUSIC_PATH="${MUSIC_PATH}" \
+  # 检查每个授权路径是否存在
+  IFS=':' read -ra PATHS <<< "${TRIM_DATA_ACCESSIBLE_PATHS}"
+  for p in "${PATHS[@]}"; do
+    if [ ! -d "${p}" ]; then
+      log_msg "WARNING: Authorized path ${p} does not exist. Will be skipped."
+    fi
+  done
+
+  TRIM_DATA_ACCESSIBLE_PATHS="${TRIM_DATA_ACCESSIBLE_PATHS}" \
   DATA_DIR="${TRIM_PKGVAR}" \
+  PORT="${PORT}" \
   node "${SERVER_SCRIPT}" >> "${LOG_FILE}" 2>&1 &
 
   PID=$!

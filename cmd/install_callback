@@ -2,11 +2,13 @@
 
 # 安装后回调脚本
 # 持久化端口配置
+# 注意：音乐文件夹路径由用户通过「应用设置」→「授权文件夹」配置，
+# 系统自动注入 TRIM_DATA_ACCESSIBLE_PATHS 环境变量，无需在此保存。
 
 PORT="${wizard_port}"
 
+mkdir -p "${TRIM_PKGETC}"
 cat > "${TRIM_PKGETC}/settings.conf" <<EOF
-MUSIC_PATH=/vol1/1000/Music
 PORT=${PORT}
 EOF
 
